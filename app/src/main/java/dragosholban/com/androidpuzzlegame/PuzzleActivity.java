@@ -15,10 +15,11 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -26,6 +27,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static java.lang.Math.abs;
 
@@ -33,6 +36,7 @@ public class PuzzleActivity extends AppCompatActivity {
     ArrayList<PuzzlePiece> pieces;
     String mCurrentPhotoPath;
     String mCurrentPhotoUri;
+    TextView timerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +78,34 @@ public class PuzzleActivity extends AppCompatActivity {
                 }
             }
         });
+
+        timerView = findViewById(R.id.timer_tv);
+        startTimer(timerView);
+    }
+
+    private void startTimer(final TextView timerView) {
+        final long[] ms = {0};
+        Timer timer = new Timer();
+        TimerTask t = new TimerTask() {
+            @Override
+            public void run() {
+                PuzzleActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ms[0] += 100;
+
+                        long mseconds = ms[0] % 1000;
+                        long seconds = ms[0] / 1000;
+                        long minutes = seconds / 60;
+                        seconds = seconds % 60;
+
+                        timerView.setText(String.format("%d:%02d:%01d", minutes, seconds, mseconds / 100));
+                    }
+                });
+
+            }
+        };
+        timer.scheduleAtFixedRate(t, 100, 100);
     }
 
     private void setPicFromAsset(String assetName, ImageView imageView) {
@@ -92,7 +124,7 @@ public class PuzzleActivity extends AppCompatActivity {
             int photoH = bmOptions.outHeight;
 
             // Determine how much to scale down the image
-            int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+            int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
 
             is.reset();
 
@@ -110,9 +142,9 @@ public class PuzzleActivity extends AppCompatActivity {
     }
 
     private ArrayList<PuzzlePiece> splitImage() {
-        int piecesNumber = 12;
         int rows = 4;
-        int cols = 3;
+        int cols = 4;
+        int piecesNumber = rows * cols;
 
         ImageView imageView = findViewById(R.id.imageView);
         ArrayList<PuzzlePiece> pieces = new ArrayList<>(piecesNumber);
@@ -134,8 +166,8 @@ public class PuzzleActivity extends AppCompatActivity {
         Bitmap croppedBitmap = Bitmap.createBitmap(scaledBitmap, abs(scaledBitmapLeft), abs(scaledBitmapTop), croppedImageWidth, croppedImageHeight);
 
         // Calculate the with and height of the pieces
-        int pieceWidth = croppedImageWidth/cols;
-        int pieceHeight = croppedImageHeight/rows;
+        int pieceWidth = croppedImageWidth / cols;
+        int pieceHeight = croppedImageHeight / rows;
 
         // Create each bitmap piece and add it to the resulting array
         int yCoord = 0;
@@ -185,7 +217,7 @@ public class PuzzleActivity extends AppCompatActivity {
                 } else {
                     // right bump
                     path.lineTo(pieceBitmap.getWidth(), offsetY + (pieceBitmap.getHeight() - offsetY) / 3);
-                    path.cubicTo(pieceBitmap.getWidth() - bumpSize,offsetY + (pieceBitmap.getHeight() - offsetY) / 6, pieceBitmap.getWidth() - bumpSize, offsetY + (pieceBitmap.getHeight() - offsetY) / 6 * 5, pieceBitmap.getWidth(), offsetY + (pieceBitmap.getHeight() - offsetY) / 3 * 2);
+                    path.cubicTo(pieceBitmap.getWidth() - bumpSize, offsetY + (pieceBitmap.getHeight() - offsetY) / 6, pieceBitmap.getWidth() - bumpSize, offsetY + (pieceBitmap.getHeight() - offsetY) / 6 * 5, pieceBitmap.getWidth(), offsetY + (pieceBitmap.getHeight() - offsetY) / 3 * 2);
                     path.lineTo(pieceBitmap.getWidth(), pieceBitmap.getHeight());
                 }
 
@@ -195,7 +227,7 @@ public class PuzzleActivity extends AppCompatActivity {
                 } else {
                     // bottom bump
                     path.lineTo(offsetX + (pieceBitmap.getWidth() - offsetX) / 3 * 2, pieceBitmap.getHeight());
-                    path.cubicTo(offsetX + (pieceBitmap.getWidth() - offsetX) / 6 * 5,pieceBitmap.getHeight() - bumpSize, offsetX + (pieceBitmap.getWidth() - offsetX) / 6, pieceBitmap.getHeight() - bumpSize, offsetX + (pieceBitmap.getWidth() - offsetX) / 3, pieceBitmap.getHeight());
+                    path.cubicTo(offsetX + (pieceBitmap.getWidth() - offsetX) / 6 * 5, pieceBitmap.getHeight() - bumpSize, offsetX + (pieceBitmap.getWidth() - offsetX) / 6, pieceBitmap.getHeight() - bumpSize, offsetX + (pieceBitmap.getWidth() - offsetX) / 3, pieceBitmap.getHeight());
                     path.lineTo(offsetX, pieceBitmap.getHeight());
                 }
 
@@ -276,8 +308,8 @@ public class PuzzleActivity extends AppCompatActivity {
         int imgViewW = imageView.getWidth();
         int imgViewH = imageView.getHeight();
 
-        int top = (int) (imgViewH - actH)/2;
-        int left = (int) (imgViewW - actW)/2;
+        int top = (int) (imgViewH - actH) / 2;
+        int left = (int) (imgViewW - actW) / 2;
 
         ret[0] = left;
         ret[1] = top;
@@ -314,7 +346,7 @@ public class PuzzleActivity extends AppCompatActivity {
         int photoH = bmOptions.outHeight;
 
         // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
 
         // Decode the image file into a Bitmap sized to fill the View
         bmOptions.inJustDecodeBounds = false;
