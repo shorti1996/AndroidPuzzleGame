@@ -64,11 +64,12 @@ public class PuzzleActivity extends AppCompatActivity {
                     imageView.setImageURI(Uri.parse(mCurrentPhotoUri));
                 }
                 pieces = splitImage();
-                TouchListener touchListener = new TouchListener(PuzzleActivity.this);
+                SinglePuzzlePieceTouchListener singlePuzzlePieceTouchListener =
+                        new SinglePuzzlePieceTouchListener(PuzzleActivity.this);
                 // shuffle pieces order
                 Collections.shuffle(pieces);
                 for (PuzzlePiece piece : pieces) {
-                    piece.setOnTouchListener(touchListener);
+                    piece.setOnTouchListener(singlePuzzlePieceTouchListener);
                     layout.addView(piece);
                     // randomize position, on the bottom of the screen
                     RelativeLayout.LayoutParams lParams = (RelativeLayout.LayoutParams) piece.getLayoutParams();
